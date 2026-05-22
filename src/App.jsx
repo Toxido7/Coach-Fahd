@@ -90,6 +90,7 @@ function Input(props) {
         fontSize: 14,
         outline: "none",
         transition: "border 0.2s, box-shadow 0.2s",
+        boxSizing: "border-box",
         ...props.style,
       }}
       onFocus={(e) => {
@@ -119,6 +120,7 @@ function Select({ children, ...props }) {
         fontSize: 14,
         outline: "none",
         transition: "border 0.2s",
+        boxSizing: "border-box",
         ...props.style,
       }}
       onFocus={(e) => {
@@ -133,9 +135,9 @@ function Select({ children, ...props }) {
   );
 }
 
-function Field({ label, children, half }) {
+function Field({ label, children }) {
   return (
-    <div style={{ marginBottom: "1rem", width: half ? "100%" : undefined }}>
+    <div style={{ marginBottom: "1rem" }}>
       <Label>{label}</Label>
       {children}
     </div>
@@ -144,7 +146,10 @@ function Field({ label, children, half }) {
 
 function Row({ children }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+    <div
+      className="two-col"
+      style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+    >
       {children}
     </div>
   );
@@ -175,7 +180,7 @@ function StatBox({ label, value, unit, accent }) {
       <div
         style={{
           fontFamily: "Syne, sans-serif",
-          fontSize: "1.3rem",
+          fontSize: "clamp(0.95rem,2.5vw,1.3rem)",
           fontWeight: 800,
           color: accent ? "#00E5FF" : "#E8EDF2",
           lineHeight: 1,
@@ -283,17 +288,19 @@ export default function App() {
     const imc = +(p / (t / 100) ** 2).toFixed(1);
     const bmr = Math.round(calcBMR(form.sexe, p, t, a));
     const tdee = Math.round(bmr * act);
-    const prise = tdee + 300;
-    const perte = tdee - 300;
+    const prise = tdee + 400;
+    const perte = tdee - 400;
     const target =
       objectif === "prise" ? prise : objectif === "perte" ? perte : tdee;
     const protG = Math.round((target * 0.3) / 4);
     const carbG = Math.round((target * 0.45) / 4);
     const fatG = Math.round((target * 0.25) / 9);
     const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+    const trainingDays = Math.min(s, 7);
     const weekCals = days.map((_, i) =>
-      i < Math.min(s, 7) ? target : Math.round(target * 0.88),
+      i < trainingDays ? target : Math.round(target * 0.88),
     );
+    const isTraining = days.map((_, i) => i < trainingDays);
     const res = {
       imc,
       imcInfo: imcCategory(imc),
@@ -309,6 +316,7 @@ export default function App() {
       seances: s,
       days,
       weekCals,
+      isTraining,
     };
     setResults(res);
     sendToCoach(res);
@@ -376,7 +384,7 @@ export default function App() {
           {
             data: results.weekCals,
             backgroundColor: results.weekCals.map((_, i) =>
-              i < Math.min(results.seances, 7) ? "#00E5FF" : "#1A2535",
+              results.isTraining[i] ? "#00E5FF" : "#7C3AFF",
             ),
             borderRadius: 5,
             borderSkipped: false,
@@ -393,7 +401,41 @@ export default function App() {
         fontFamily: "'DM Sans', sans-serif",
       }}
     >
+      <style>{`
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; }
+        input::placeholder { color: #3A4A5A; }
+        .main-grid {
+          max-width: 1020px; margin: 0 auto;
+          padding: 2.5rem 1.25rem; display: grid;
+          grid-template-columns: 1fr 1fr; gap: 1.5rem; justify-content: center;
+        }
+        .main-grid.single { grid-template-columns: minmax(0, 520px); }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 768px) {
+          .main-grid, .main-grid.single {
+            grid-template-columns: 1fr !important;
+            padding: 1rem 0.85rem !important;
+          }
+          .hero-section { padding: 1.75rem 1rem 1.5rem !important; }
+          .hero-title { font-size: 1.75rem !important; }
+          .hero-sub { font-size: 13px !important; }
+          .card-inner { padding: 1.25rem !important; }
+          .stat-grid { gap: 6px !important; }
+          .stat-val { font-size: 1rem !important; }
+          .chart-bar { height: 130px !important; }
+          .chart-donut { height: 155px !important; }
+        }
+        @media (max-width: 420px) {
+          .two-col { grid-template-columns: 1fr !important; gap: 0 !important; }
+          .hero-title { font-size: 1.5rem !important; }
+          .badge-text { font-size: 9px !important; letter-spacing: 2px !important; }
+        }
+      `}</style>
+
+      {/* HERO */}
       <div
+        className="hero-section"
         style={{
           position: "relative",
           overflow: "hidden",
@@ -452,6 +494,7 @@ export default function App() {
               }}
             />
             <span
+              className="badge-text"
               style={{
                 fontSize: 11,
                 letterSpacing: 3,
@@ -464,9 +507,10 @@ export default function App() {
             </span>
           </div>
           <h1
+            className="hero-title"
             style={{
               fontFamily: "Syne, sans-serif",
-              fontSize: "clamp(2rem,6vw,3.5rem)",
+              fontSize: "clamp(1.75rem,6vw,3.5rem)",
               fontWeight: 800,
               lineHeight: 1.05,
               color: "#E8EDF2",
@@ -485,6 +529,7 @@ export default function App() {
             Rabaaoui
           </h1>
           <p
+            className="hero-sub"
             style={{
               fontSize: 15,
               color: "#4A5568",
@@ -499,18 +544,11 @@ export default function App() {
         </div>
       </div>
 
-      <div
-        style={{
-          maxWidth: 1020,
-          margin: "0 auto",
-          padding: "2.5rem 1.25rem",
-          display: "grid",
-          gridTemplateColumns: results ? "1fr 1fr" : "minmax(0,520px)",
-          gap: "1.5rem",
-          justifyContent: "center",
-        }}
-      >
+      {/* MAIN GRID */}
+      <div className={`main-grid${results ? "" : " single"}`}>
+        {/* FORM */}
         <div
+          className="card-inner"
           style={{
             background: "#0A1520",
             border: "1px solid #0D1E2E",
@@ -562,11 +600,12 @@ export default function App() {
               }}
             />
           </div>
+
           <Field label="Nom complet">
             <Input
               value={form.nom}
               onChange={set("nom")}
-              placeholder="Ex: Ahmed Ben Ali"
+              placeholder="Votre nom complet"
             />
           </Field>
           <Row>
@@ -575,7 +614,7 @@ export default function App() {
                 type="number"
                 value={form.age}
                 onChange={set("age")}
-                placeholder="25"
+                placeholder="Votre âge"
                 min="10"
                 max="100"
               />
@@ -593,7 +632,7 @@ export default function App() {
                 type="number"
                 value={form.taille}
                 onChange={set("taille")}
-                placeholder="175"
+                placeholder="Taille en cm"
               />
             </Field>
             <Field label="Poids (kg)">
@@ -601,7 +640,7 @@ export default function App() {
                 type="number"
                 value={form.poids}
                 onChange={set("poids")}
-                placeholder="70"
+                placeholder="Poids en kg"
               />
             </Field>
           </Row>
@@ -630,12 +669,13 @@ export default function App() {
                 type="number"
                 value={form.seances}
                 onChange={set("seances")}
-                placeholder="3"
+                placeholder="Nb de séances"
                 min="0"
-                max="14"
+                max="7"
               />
             </Field>
           </Row>
+
           <button
             onClick={calculate}
             style={{
@@ -654,18 +694,22 @@ export default function App() {
               cursor: "pointer",
               boxShadow: "0 4px 24px rgba(0,180,255,0.25)",
               transition: "transform 0.15s, box-shadow 0.15s",
+              touchAction: "manipulation",
             }}
             onMouseEnter={(e) => {
-              e.target.style.transform = "translateY(-1px)";
-              e.target.style.boxShadow = "0 8px 32px rgba(0,180,255,0.4)";
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 32px rgba(0,180,255,0.4)";
             }}
             onMouseLeave={(e) => {
-              e.target.style.transform = "none";
-              e.target.style.boxShadow = "0 4px 24px rgba(0,180,255,0.25)";
+              e.currentTarget.style.transform = "none";
+              e.currentTarget.style.boxShadow =
+                "0 4px 24px rgba(0,180,255,0.25)";
             }}
           >
             Analyser mon profil →
           </button>
+
           {status.msg && (
             <div
               style={{
@@ -685,8 +729,10 @@ export default function App() {
           )}
         </div>
 
+        {/* RESULTS */}
         {results && (
           <div
+            className="card-inner"
             style={{
               background: "#0A1520",
               border: "1px solid #0D1E2E",
@@ -724,7 +770,10 @@ export default function App() {
                 }}
               />
             </div>
+
+            {/* Stats */}
             <div
+              className="stat-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3,1fr)",
@@ -753,6 +802,7 @@ export default function App() {
                   IMC
                 </div>
                 <div
+                  className="stat-val"
                   style={{
                     fontFamily: "Syne, sans-serif",
                     fontSize: "1.3rem",
@@ -778,6 +828,8 @@ export default function App() {
                 accent
               />
             </div>
+
+            {/* Objective */}
             <SectionLabel>Objectif calorique</SectionLabel>
             <div
               style={{
@@ -833,7 +885,7 @@ export default function App() {
                     <div
                       style={{
                         fontFamily: "Syne, sans-serif",
-                        fontSize: "0.9rem",
+                        fontSize: "clamp(0.75rem,2vw,0.9rem)",
                         fontWeight: 700,
                         color: active ? "#00E5FF" : "#E8EDF2",
                       }}
@@ -844,9 +896,12 @@ export default function App() {
                 );
               })}
             </div>
+
             <Divider />
             <SectionLabel>Macronutriments</SectionLabel>
+
             <div
+              className="chart-donut"
               style={{
                 position: "relative",
                 height: 175,
@@ -872,6 +927,7 @@ export default function App() {
                   left: "50%",
                   transform: "translate(-50%,-50%)",
                   textAlign: "center",
+                  pointerEvents: "none",
                 }}
               >
                 <div
@@ -891,6 +947,7 @@ export default function App() {
                 </div>
               </div>
             </div>
+
             <div
               style={{
                 display: "flex",
@@ -952,9 +1009,65 @@ export default function App() {
                 </div>
               ))}
             </div>
+
             <Divider />
             <SectionLabel>Plan hebdomadaire</SectionLabel>
-            <div style={{ position: "relative", height: 150 }}>
+
+            {/* Bar chart legend */}
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                justifyContent: "center",
+                marginBottom: 10,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 11,
+                  color: "#6B7A8D",
+                }}
+              >
+                <span
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 2,
+                    background: "#00E5FF",
+                    display: "block",
+                  }}
+                />
+                Entraînement
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 11,
+                  color: "#6B7A8D",
+                }}
+              >
+                <span
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 2,
+                    background: "#7C3AFF",
+                    display: "block",
+                  }}
+                />
+                Repos
+              </div>
+            </div>
+
+            <div
+              className="chart-bar"
+              style={{ position: "relative", height: 150 }}
+            >
               <Bar
                 data={weekData}
                 options={{
