@@ -293,25 +293,25 @@ export default function App() {
     const target =
       objectif === "prise" ? prise : objectif === "perte" ? perte : tdee;
 
+    // Protéines: based on IFAT Tunis-Sousse reference
+    // Sédentaire/maintien: ~1.4 g/kg
+    // Endurance/perte: ~1.6 g/kg (max endurance range)
+    // Force/prise: ~1.8 g/kg (middle of 1.6–2 range)
     const protPerKg =
-      objectif === "prise"
-        ? 2.0 // muscle gain: 2g/kg
-        : objectif === "perte"
-          ? 2.2 // weight loss: preserve muscle
-          : 1.8; // maintenance: standard
+      objectif === "prise" ? 1.8 : objectif === "perte" ? 1.6 : 1.4;
 
     const protG = Math.round(p * protPerKg);
     const protCals = protG * 4;
 
-    // Fat: 25% of target calories
-    const fatG = Math.round((target * 0.25) / 9);
+    // Lipides: 1.25 g/kg (IFAT: 1.2–1.4 g/kg middle range)
+    const fatG = Math.round(p * 1.25);
     const fatCals = fatG * 9;
 
-    // Carbs: everything left
+    // Glucides: everything left (IFAT: 55–65% of daily intake)
     const carbCals = Math.max(target - protCals - fatCals, 0);
     const carbG = Math.round(carbCals / 4);
 
-    // For the pie chart
+    // For pie chart
     const macroSplit = {
       prot: protCals / target,
       carb: carbCals / target,
@@ -800,7 +800,6 @@ export default function App() {
               />
             </div>
 
-            {/* Stats */}
             <div
               className="stat-grid"
               style={{
@@ -858,7 +857,6 @@ export default function App() {
               />
             </div>
 
-            {/* Objective */}
             <SectionLabel>Objectif calorique</SectionLabel>
             <div
               style={{
