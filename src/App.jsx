@@ -293,16 +293,30 @@ export default function App() {
     const target =
       objectif === "prise" ? prise : objectif === "perte" ? perte : tdee;
 
-    const macroSplit =
+    const protPerKg =
       objectif === "prise"
-        ? { prot: 0.3, carb: 0.45, fat: 0.25 }
+        ? 2.0 // muscle gain: 2g/kg
         : objectif === "perte"
-          ? { prot: 0.35, carb: 0.4, fat: 0.25 }
-          : { prot: 0.2, carb: 0.5, fat: 0.3 };
+          ? 2.2 // weight loss: preserve muscle
+          : 1.8; // maintenance: standard
 
-    const protG = Math.round((target * macroSplit.prot) / 4);
-    const carbG = Math.round((target * macroSplit.carb) / 4);
-    const fatG = Math.round((target * macroSplit.fat) / 9);
+    const protG = Math.round(p * protPerKg);
+    const protCals = protG * 4;
+
+    // Fat: 25% of target calories
+    const fatG = Math.round((target * 0.25) / 9);
+    const fatCals = fatG * 9;
+
+    // Carbs: everything left
+    const carbCals = Math.max(target - protCals - fatCals, 0);
+    const carbG = Math.round(carbCals / 4);
+
+    // For the pie chart
+    const macroSplit = {
+      prot: protCals / target,
+      carb: carbCals / target,
+      fat: fatCals / target,
+    };
 
     const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
     const trainingDays = Math.min(s, 7);
