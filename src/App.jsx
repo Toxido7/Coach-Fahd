@@ -292,15 +292,25 @@ export default function App() {
     const perte = tdee - 400;
     const target =
       objectif === "prise" ? prise : objectif === "perte" ? perte : tdee;
-    const protG = Math.round((target * 0.3) / 4);
-    const carbG = Math.round((target * 0.45) / 4);
-    const fatG = Math.round((target * 0.25) / 9);
+
+    const macroSplit =
+      objectif === "prise"
+        ? { prot: 0.3, carb: 0.45, fat: 0.25 }
+        : objectif === "perte"
+          ? { prot: 0.35, carb: 0.4, fat: 0.25 }
+          : { prot: 0.2, carb: 0.5, fat: 0.3 };
+
+    const protG = Math.round((target * macroSplit.prot) / 4);
+    const carbG = Math.round((target * macroSplit.carb) / 4);
+    const fatG = Math.round((target * macroSplit.fat) / 9);
+
     const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
     const trainingDays = Math.min(s, 7);
     const weekCals = days.map((_, i) =>
       i < trainingDays ? target : Math.round(target * 0.88),
     );
     const isTraining = days.map((_, i) => i < trainingDays);
+
     const res = {
       imc,
       imcInfo: imcCategory(imc),
@@ -313,6 +323,7 @@ export default function App() {
       protG,
       carbG,
       fatG,
+      macroSplit,
       seances: s,
       days,
       weekCals,
@@ -368,7 +379,11 @@ export default function App() {
         ],
         datasets: [
           {
-            data: [30, 45, 25],
+            data: [
+              results.macroSplit.prot * 100,
+              results.macroSplit.carb * 100,
+              results.macroSplit.fat * 100,
+            ],
             backgroundColor: ["#00E5FF", "#7C3AFF", "#00FFA3"],
             borderWidth: 0,
             hoverOffset: 8,
@@ -1013,7 +1028,6 @@ export default function App() {
             <Divider />
             <SectionLabel>Plan hebdomadaire</SectionLabel>
 
-            {/* Bar chart legend */}
             <div
               style={{
                 display: "flex",
