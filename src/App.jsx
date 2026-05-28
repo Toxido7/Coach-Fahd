@@ -293,21 +293,20 @@ export default function App() {
     const target =
       objectif === "prise" ? prise : objectif === "perte" ? perte : tdee;
 
-    // Protéines: based on IFAT Tunis-Sousse reference
-    // Sédentaire/maintien: ~1.4 g/kg
-    // Endurance/perte: ~1.6 g/kg (max endurance range)
-    // Force/prise: ~1.8 g/kg (middle of 1.6–2 range)
+    // Coach Fahd exact formulas
     const protPerKg =
-      objectif === "prise" ? 1.8 : objectif === "perte" ? 1.6 : 1.4;
+      objectif === "perte" ? 2.2 : objectif === "maintien" ? 1.8 : 2.0; // prise
+
+    const fatPerKg =
+      objectif === "perte" ? 0.8 : objectif === "maintien" ? 1.0 : 1.2; // prise
 
     const protG = Math.round(p * protPerKg);
     const protCals = protG * 4;
 
-    // Lipides: 1.25 g/kg (IFAT: 1.2–1.4 g/kg middle range)
-    const fatG = Math.round(p * 1.25);
+    const fatG = Math.round(p * fatPerKg);
     const fatCals = fatG * 9;
 
-    // Glucides: everything left (IFAT: 55–65% of daily intake)
+    // Carbs: everything left
     const carbCals = Math.max(target - protCals - fatCals, 0);
     const carbG = Math.round(carbCals / 4);
 
