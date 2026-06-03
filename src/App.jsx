@@ -269,6 +269,8 @@ export default function App() {
 
   function calculate() {
     const { age, taille, poids, activite, objectif, seances } = form;
+
+    // Basic validation
     if (
       !age ||
       !taille ||
@@ -280,6 +282,19 @@ export default function App() {
       alert("Veuillez remplir : âge, taille et poids.");
       return;
     }
+
+    // Height must be in cm
+    if (+taille < 100 || +taille > 250) {
+      alert("La taille doit être en centimètres (ex: 172 et non 1.72).");
+      return;
+    }
+
+    // Weight must be in kg
+    if (+poids < 30 || +poids > 300) {
+      alert("Le poids doit être en kilogrammes (ex: 109).");
+      return;
+    }
+
     const a = +age,
       t = +taille,
       p = +poids,
@@ -300,11 +315,14 @@ export default function App() {
     const fatPerKg =
       objectif === "perte" ? 0.8 : objectif === "maintien" ? 1.0 : 1.2; // prise
 
-    const protG = Math.round(p * protPerKg);
-    const protCals = protG * 4;
-
     const fatG = Math.round(p * fatPerKg);
     const fatCals = fatG * 9;
+
+    // Cap protein so carbs always get minimum 100g (400 kcal)
+    const maxProtCals = target - fatCals - 400;
+    const idealProtG = Math.round(p * protPerKg);
+    const protG = Math.min(idealProtG, Math.round(maxProtCals / 4));
+    const protCals = protG * 4;
 
     // Carbs: everything left
     const carbCals = Math.max(target - protCals - fatCals, 0);
@@ -660,7 +678,9 @@ export default function App() {
                 type="number"
                 value={form.taille}
                 onChange={set("taille")}
-                placeholder="Taille en cm"
+                placeholder="Votre taille en cm"
+                min="100"
+                max="250"
               />
             </Field>
             <Field label="Poids (kg)">
@@ -668,7 +688,9 @@ export default function App() {
                 type="number"
                 value={form.poids}
                 onChange={set("poids")}
-                placeholder="Poids en kg"
+                placeholder="Votre poids en kg"
+                min="30"
+                max="300"
               />
             </Field>
           </Row>
